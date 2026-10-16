@@ -41,6 +41,7 @@ use App\Exports\MemberPotensialReferalByDistrict;
 use App\Exports\MemberPotensialUpperByDistrictUpper;
 use App\Helpers\DeleteNikOrg;
 use App\Helpers\UpdateNikOrg;
+use App\Providers\Model\UserModel;
 use App\TmpSpamUser;
 
 class MemberController extends Controller
@@ -73,8 +74,9 @@ class MemberController extends Controller
            $cekLengthNik = strlen($request->nik);
            if($cekLengthNik <> 16) return redirect()->back()->with(['error' => 'NIK harus 16 angka, cek kembali NIK tersebut!']);
 
-           $cby = Admin::select('id')->first();
+        //    $cby = Admin::select('id')->first();
         //    $cby    = User::select('id')->where('user_id', $cby_id->id)->first();
+        $cby = auth()->guard('admin')->user()->id;
            
            $cek_nik = User::select('nik')->where('nik', $request->nik)->count();
            #cek nik jika sudah terpakai
@@ -157,8 +159,9 @@ class MemberController extends Controller
 
     public function editMember($id)
     {
-        $id = decrypt($id);
-        $profile = app('UserModel')->getProfile($id);
+        // $id = decrypt($id);
+        $userModel = new UserModel();
+        $profile = $userModel->getProfile($id);
         return view('pages.admin.member.edit', compact('profile'));
     }
 

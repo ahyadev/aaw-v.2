@@ -26,10 +26,13 @@ Route::post('addElement', 'API\LocationController@addElement');
 Route::post('searchprovincesById', 'API\LocationController@getSearchProvinceById');
 Route::post('searchregencyById', 'API\LocationController@getSearchRegencyById');
 Route::post('searchdistrictById', 'API\LocationController@getSearchDistrictById');
+Route::post('searchdapilById', 'API\LocationController@getSearchDapil');
 Route::post('searchVillageById', 'API\LocationController@getSearchVillageById');
 Route::post('getrtbyvillage', 'API\LocationController@getRTByVIllage');
 Route::post('getkampungbyvillage', 'API\LocationController@getKampungByVIllage');
 Route::post('getrtbyvillageNew', 'API\LocationController@getRTByVIllageNew');
+
+Route::post('gettpsbyvillage', 'API\LocationController@getTpsVIllage');
 
 Route::post('intelegency/addElement', 'Admin\InformationController@addElementFormIntelegence');
 
@@ -89,9 +92,17 @@ Route::post('org/getdataorgpusat', 'Admin\OrgDiagramController@getDataOrgPusat')
 Route::post('org/pusat/delete', 'Admin\OrgDiagramController@deleteKorPusat');
 Route::post('org/pusat/update', 'Admin\OrgDiagramController@updateOrgPusat');
 
+#DATATABLE SAKSI
+Route::post('org/list/saksi', 'Admin\OrgDiagramController@getDataOrgSaksi');
+
+
+Route::post('org/rt/anggotakeluargaserumah/delete', 'Admin\OrgDiagramController@deleteDataAnggotaByKortpsForFamillyGroup');
+Route::post('org/rt/headkeluargaserumah/delete', 'Admin\OrgDiagramController@deleteDataHeadByKortpsForFamillyGroup');
 
 #TPS
 Route::post('/list/tps', 'Admin\TpsController@getDataTps');
+
+Route::post('/list/sapaanggota/desa', 'Admin\EventController@getDataSapaAnggotaDesaDataTable');
 
 #new org diagram
 // Route::get('org/rt', 'Admin\OrgDiagramController@getDataOrgDiagramRT');
@@ -275,6 +286,8 @@ Route::post('/user/dtrewardinput', 'RewardController@dtVoucherHistoryAdmin');
 
 // target
 Route::get('/list/target', 'Admin\SettingController@getListTarget');
+Route::post('/update/dpt', 'Admin\SettingController@updateDptSinkronisasi');
+Route::post('/dpt', 'Admin\SettingController@updateDistrictTps');
 
 Route::post('/detailfigure', 'Admin\InformationController@detailFigure');
 
@@ -347,6 +360,8 @@ Route::get('/admin/koordinator/absensi', 'Admin\KoordinatorController@absensi');
 
 // ORG DIAGRAM
 Route::get('/ordiagram', 'Admin\OrgDiagramController@show');
+Route::post('/datacoverkortps', 'Admin\OrgDiagramController@getDataCoverKorTps');
+Route::post('/datatimkortps', 'Admin\OrgDiagramController@getDataTimKorTps');
 
 #CATATAN
 Route::post('/getlistcatatan', 'Admin\CatatanController@getListCatatan');
@@ -441,3 +456,41 @@ Route::post('/respondentdetail/{id}', 'Admin\QuestionnaireRespondentController@d
 
 // untuk update jumlah2 yg ada di tabel excel DPT
 Route::post('/rightchoose/update/field/village','Admin\SettingController@updateFieldDPTLevelDesa')->name('admin-rightchoose-update-field-village');
+
+// get kalkulasi anggota tercover dan belum
+Route::post('/tim/calculate', 'Admin\OrgDiagramController@countMemberNotCover');
+
+Route::post('/tim/updatemytps', 'Admin\OrgDiagramController@updateMyTps');
+
+Route::post('org/rt/anggotaformmanual/delete', 'Admin\OrgDiagramController@deleteAnggotaFormManual');
+
+// Report event sapa anggota
+Route::post('event/anggota/sapa/download', 'Admin\EventController@downloadSapaAnggota');
+
+Route::post('/dumydata/perolehansuara','Admin\TpsController@setDumyDataPerolehanSuara');
+
+Route::get('/hasilsuara/count','Admin\TpsController@updateCounterHasilSuara');
+
+Route::post('event/sapaanggota/jumlahtitik/update','Admin\EventController@updateJumlahTitikKampanyeByDesa');
+
+
+Route::post('doc/keluarhaserumah/calculate','Admin\DocumentController@kalkulasiKeluargaSerumahPerKecamatan');
+
+Route::post('doc/dpt/duplikat','Admin\DocumentController@getDataDuplikatNikDpt');
+
+#dashboard SIP
+Route::post('sip/regency', 'Admin\SipController@getSipRegency');
+Route::get('sip/dapil/{dapilid}', 'Admin\SipController@getSipDapil');
+Route::get('sip/district/{dapilid}', 'Admin\SipController@getSipDistrict');
+Route::get('sip/district/village/{villageId}', 'Admin\SipController@getSipVillage');
+// Route::post('sip/rekap/village/{villageId}', 'Admin\SipController@getRekapTpsByDesa'); 
+Route::post('sip/rekap/district/{villageId}', 'Admin\SipController@getRekapTpsByDistrict'); 
+Route::post('sip/rekap/district/village/{villageId}', 'Admin\SipController@getRekapTpsByVillage'); 
+
+Route::post('/kordes/tpsid/update','Admin\TpsController@updateTpsIdKordes'); 
+Route::post('/sip/kordes/tpsid/update','Admin\TpsController@replaceTpsIdKordesByKecamatan');  
+Route::post('/sip/usersid/duplicat/spam','Admin\TpsController@deleteAnggotaTidakTercoverKorte');  
+
+Route::post('chart-export','Admin\SipController@dashboardDesaPdfChartDownload');
+
+Route::post('rangking','Admin\SipController@rangkingPerolehanSuara')->name('admin-sip-rangking'); 

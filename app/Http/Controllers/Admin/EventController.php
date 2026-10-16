@@ -10,6 +10,8 @@ use App\CostEvent;
 use App\EventDetail;
 use App\ForecastDesc;
 use App\EventCategory;
+use App\Exports\SapaAnggotaKabupatenExport;
+use App\Exports\SapaAnggotaKecamatanExport;
 use App\FamilyGroup;
 use App\GiftRecipients;
 use App\Models\Village;
@@ -19,12 +21,21 @@ use App\Providers\GlobalProvider;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\District;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\Regency;
 use PDF;
+use Maatwebsite\Excel\Excel;
+use App\OrgDiagram;
 
 class EventController extends Controller
 {
+    public $excel;
+    public function __construct(Excel $excel)
+    {
+        $this->excel = $excel; 
+    }
+
     public function index()
     {
         $eventModel = new Event();
@@ -62,7 +73,7 @@ class EventController extends Controller
                                 </div>
                                 </div>
                                 <div class="col-6">
-                                <a class="btn btn-sm btn-danger" href="'.route('admin-event-delete', $item->id).'">
+                                <a class="btn btn-sm btn-danger ml-3" href="'.route('admin-event-delete', $item->id).'">
                                     <i class="fa fa-trash"></i>
                                 </a>
                                 </div>
@@ -101,35 +112,83 @@ class EventController extends Controller
 
         return view('pages.admin.event.index', compact('regency','event_cat'));
     }
-	
+	 
 	public function downloadGaleryByEvent(Request $request){
+
+       if ($request->report_type == 'sapaanggota') {
+           
+            $regency_id  = $request->regency_id;
+            $district_id = $request->district_id;
+            $village_id  = $request->village_id;
+            $event_category_id = 78;
+
+            $eventModel = new Event();
+
+            /**
+             * get data sapa anggota per kecamatan, get data by regency_id
+             * menampilkan : NO | KECAMATAN | PESERTA | ANGGOTA TERCOVER | BIAYA
+             * Report Excel
+             */
+
+            /**
+             * get data sapa anggota per desa, get data by district_id
+            * menampilkan : NO | DESA | PESERTA | ANGGOTA TERCOVER | BIAYA
+            * Report Excel
+            */
+            
+            #per desa, get by district_id
+
+            if ($regency_id != '' && $district_id == ''  && $village_id == '') {
+                # list per dapil
+                /**
+                 * get data kecamatan yg sudah mengikuti sapa anggota
+                 * sheet nya memuat per kecamatan
+                 */
+                $districts = $eventModel->getKecamatanMengikutiKunjungan($regency_id, $event_category_id);
+                
+                $title = 'DAFTAR PESERTA SAPA ANGGOTA PER KECAMATAN.xls';
+                return $this->excel->download(new SapaAnggotaKabupatenExport($districts,$event_category_id), $title);
+
+            } elseif ($regency_id != '' && $district_id != ''  && $village_id == '') {
+                
+                $events    = $eventModel->getSapaAnggotaPerKecamatan($district_id, $event_category_id);
+
+                $district = District::select('name')->where('id', $district_id)->first();
+
+                $title = 'DAFTAR PESERTA SAPA ANGGOTA KEC. '.$district->name.'.xls';
+                return $this->excel->download(new SapaAnggotaKecamatanExport($events,$district->name), $title);
+
+            }elseif ($regency_id != '' && $district_id != ''  && $village_id != '') {
+
+                return redirect()->back()->with(['warning' => 'Belum tersedia laporan perdesa']);
+                
+            }
+
+       }else{
+
+           // get data galery event by event kategori event dan desa
+           $events = DB::table('event_galleries as a')
+                   ->select('a.descr','a.file')
+                   ->join('events as b','a.event_id','=','b.id')
+                   ->join('event_categories as c','b.event_category_id','=','c.id')
+                   ->where('b.event_category_id', $request->eventcatid)
+                   ->where('b.district_id', $request->district_id)
+                   ->get();
+           
+           if(count($events) < 1){
+               
+               return redirect()->back()->with(['error' => 'Tidak ada data']);
+               
+           }else{
+               
+               $event_cat = DB::table('event_categories')->select('id','name')->where('id',$request->eventcatid)->first();
+               $districts = DB::table('districts')->select('name')->where('id', $request->district_id)->first(); 
+               $village = $districts;
+               $pdf  = PDF::LoadView('pages.report.fotoevent', compact('events','event_cat','village'))->setPaper('a4','landscape');
+               return $pdf->download('LAPORAN DOKUMENTASI '.strtoupper($event_cat->name).'KECAMATAN '.$village->name.'.pdf');
+           }
+       }
 		
-		// get data galery event by event kategori event dan desa
-		$events = DB::table('event_galleries as a')
-				->select('a.descr','a.file')
-				->join('events as b','a.event_id','=','b.id')
-				->join('event_categories as c','b.event_category_id','=','c.id')
-				->where('b.event_category_id', $request->eventcatid)
-				->where('b.district_id', $request->district_id)
-				->get();
-		
-		if(count($events) < 1){
-			
-			return redirect()->back()->with(['error' => 'Tidak ada data']);
-			
-		}else{
-			
-			$event_cat = DB::table('event_categories')->select('id','name')->where('id',$request->eventcatid)->first();
-			// $village   = DB::table('villages as a')
-					// ->select('a.name as village','b.name as district')
-					// ->join('districts as b','a.district_id','=','b.id')
-					// ->where('a.id', $request->village_id)
-					// ->first();
-			$districts = DB::table('districts')->select('name')->where('id', $request->district_id)->first(); 
-			$village = $districts;
-			$pdf  = PDF::LoadView('pages.report.fotoevent', compact('events','event_cat','village'))->setPaper('a4','landscape');
-			return $pdf->download('LAPORAN DOKUMENTASI '.strtoupper($event_cat->name).'KECAMATAN '.$village->name.'.pdf');
-		}
 		
 				
 	}
@@ -146,7 +205,7 @@ class EventController extends Controller
         return view('pages.admin.event.create',compact('eventCategories'));
     }
 
-    public function edit($id)
+    public function edit($id) 
     {
         $event = Event::where('id', $id)->first();
         $eventCategories = EventCategory::select('id','name')->orderBy('name','asc')->get();
@@ -155,8 +214,8 @@ class EventController extends Controller
     
     public function delete($id)
     {
-        $event = Event::where('id', $id)->first();
-        $event->delete();
+       Event::where('id', $id)->update(['isdelete' => 1]);
+        // $event->delete();
 
         return redirect()->back()->with(['success' => 'Event telah dihapus']);
     }
@@ -562,6 +621,174 @@ class EventController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function sapaAnggotaDapil()
+    {
+        $regencyModel = Regency::select('id', 'name')->where('id', 3602)->first();
+		$regency = $regencyModel->id;
+		
+		// get data dapil se kab lebak
+		$eventModel = new Event();
+		$dapils 	= $eventModel->getSapaAnggotDapilByRegencyId($regency);
+		
+		$no 		= 1;
+		
+        return view('pages.admin.event.sapaanggota.index', compact('dapils','no'));
+    }
+	
+	public function sapaAnggotaKecamatan($dapilId)
+	{
+		$dapil = DB::table('dapils')->select('name')->where('id', $dapilId)->first();
+		// get data kecamatan by dapil
+		$eventModel = new Event();
+		$kecamatans = $eventModel->getSapaAnggotaDistrictByDapilId($dapilId);
+		$no 	= 1; 
+		
+		return view('pages.admin.event.sapaanggota.district', compact('kecamatans','no','dapil')); 
+	}
+	
+	public function sapaAnggotaDesa($districtId)
+	{
+		$district = DB::table('districts')->select('name','target_persentage','id')->where('id', $districtId)->first();
+		
+		$eventModel = new Event();
+		$desa 		= $eventModel->getSapaAnggotaVillageByDistrictId($districtId);
+		
+		// get data desa by kecamatan
+		$no 	 		 = 1;
+		
+		return view('pages.admin.event.sapaanggota.village', compact('desa','no','district'));
+	}
+	
+	public function getDataSapaAnggotaDesaDataTable(Request $request){
+
+        // DATATABLE
+        $orderBy = 'a.name';
+        switch ($request->input('order.0.column')) {
+            case '1':
+                $orderBy = 'a.name';
+                break;
+        }
+		
+		  $eventModel = new Event();
+		  $data 	  = $eventModel->getSapaAnggotaVillageByDistrictIdDataTable($request->district_id);
+
+
+          $recordsFiltered = $data->get()->count();
+          if($request->input('length')!=-1) $data = $data->skip($request->input('start'))->take($request->input('length'));
+          $data = $data->orderBy($orderBy,$request->input('order.0.dir'))->get();
+
+          $recordsTotal = $data->count(); 
+		  
+		  $results = [];
+		  $no      = 1;
+		  foreach($data as $item){
+			  $results[] = [
+				'no' => $no++,
+				'id'  => $item->id,
+				'name' => $item->name,
+				'jml_titik' => $item->jml_titik,
+				'titik_terkunjungi' => $item->titik_terkunjungi, 
+				'titik_belum_dikunjungi' => $item->jml_titik - $item->titik_terkunjungi,
+				'peserta' => $item->peserta
+			  ];
+		  }
+
+          return response()->json([
+                'draw'=>$request->input('draw'),
+                'recordsTotal'=>$recordsTotal,
+                'recordsFiltered'=>$recordsFiltered,
+                'data'=> $results
+            ]);
+    }
+	
+	public function getDetailSapaAnggotaByDesa($villageId)
+	{
+		$village = DB::table('villages')->select('name')->where('id', $villageId)->first();
+		// tampilkan data titik lokasi kampanye berdasarkan
+		$event_category_id = 78;
+		$eventModel = new Event();
+		$data       = $eventModel->getTitikSapaAnggotaByDesa($villageId,$event_category_id);
+		
+		return view('pages.admin.event.sapaanggota.titik', compact('village','no','data'));
+		
+	}
+	
+	public function updateJumlahTitikKampanyeByDesa(Request $request)
+	{
+		DB::beginTransaction();
+        try {
+
+            $id  = request()->id;
+			
+			// update jumlah titik by village_id
+			DB::table('pengajuan_sapa_anggota')->where('village_id', $id)->update(['jml_titik' => request()->jml]);
+
+            #mekanisme sortir idx jika ada yang terhapus
+            DB::commit();
+            return ResponseFormatter::success([
+                'message' => 'Berhasil update!'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ResponseFormatter::error([
+                'message' => 'Something when wrong!',
+                'error'   => $e->getMessage()
+            ]);
+        }
+		
+	}
+
+
+    public function downloadSapaAnggota(Request $request)
+    {
+
+        $regency_id  = $request->regency_id;
+        $district_id = $request->district_id;
+        $village_id  = $request->village_id;
+        $event_category_id = $request->event_category_id;
+
+        $eventModel = new Event();
+
+        /**
+         * get data sapa anggota per kecamatan, get data by regency_id
+         * menampilkan : NO | KECAMATAN | PESERTA | ANGGOTA TERCOVER | BIAYA
+         * Report Excel
+         */
+
+         /**
+          * get data sapa anggota per desa, get data by district_id
+          * menampilkan : NO | DESA | PESERTA | ANGGOTA TERCOVER | BIAYA
+          * Report Excel
+          */
+        
+        #per desa, get by district_id
+
+        if ($regency_id != '' && $district_id == ''  && $village_id == '') {
+            # list per dapil
+            /**
+             * get data kecamatan yg sudah mengikuti sapa anggota
+             * sheet nya memuat per kecamatan
+             */
+            $districts = $eventModel->getKecamatanMengikutiKunjungan($regency_id, $event_category_id);
+            
+            $title = 'SAPA ANGGOTA KEC.xls';
+            return $this->excel->download(new SapaAnggotaKabupatenExport($districts,$event_category_id), $title);
+
+        } elseif ($regency_id != '' && $district_id != ''  && $village_id == '') {
+            
+            $events    = $eventModel->getSapaAnggotaPerKecamatan($district_id, $event_category_id);
+
+            $district = District::select('name')->where('id', $district_id)->first();
+
+            $title = 'SAPA ANGGOTA KEC. '.$district->name.'.xls';
+            return $this->excel->download(new SapaAnggotaKecamatanExport($events,$district->name), $title);
+
+        }elseif ($regency_id != '' && $district_id != ''  && $village_id != '') {
+            return 'per desa';
+        }
+
     }
 
     

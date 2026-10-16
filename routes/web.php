@@ -23,6 +23,8 @@ Route::get('/email', function () {
     return view('test-email');
 });
 
+
+
 Route::post('/by_referal/downloadexcel/{user_id}/{district_id}','Admin\MemberController@memberByReferalDownloadExcel')->name('by-referal-downloadexcel');
 Route::post('/by_referal/downloadpdf/{user_id}/{district_id}','Admin\MemberController@memberByReferalDownloadPDF')->name('by-referal-downloadpdf');
 Route::post('/admin/dashboard/referalbymount','Admin\DashboardController@referalByMountAdmin');
@@ -240,7 +242,12 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'], function(){
         Route::get('/event/add/addgiftreceipents/{id}','EventController@addGiftRecipient')->name('admin-event-addgiftreceipents');
         Route::post('/event/add/addgiftreceipents/store/{event_id}','EventController@storeAddRecipient')->name('admin-event-addgiftreceipents-store');
         Route::post('/event/add/addgiftreceipentsfamilygroup/store/{event_id}','EventController@storeAddRecipientFamilyGroup')->name('admin-event-addgiftreceipentsfamilygroup-store');
-        
+
+        // Sapa anggota
+        Route::get('/event/anggota/sapa','EventController@sapaAnggotaDapil')->name('admin-event-anggota-sapa');
+        Route::get('/event/anggota/sapa/dapil/{id}','EventController@sapaAnggotaKecamatan')->name('admin-event-anggota-sapa-dapil');
+        Route::get('/event/anggota/sapa/dapil/district/{id}','EventController@sapaAnggotaDesa')->name('admin-event-anggota-sapa-district');
+        Route::get('/event/anggota/sapa/dapil/district/village/{id}','EventController@getDetailSapaAnggotaByDesa')->name('admin-event-anggota-sapa-village');
 		
 		Route::post('/event/download/galery','EventController@downloadGaleryByEvent')->name('admin-event-galery'); 
 
@@ -478,10 +485,13 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'], function(){
             Route::post('/report/rt/excel','OrgDiagramController@reportOrgRTExcel')->name('admin-struktur-organisasi-rt-report-excel');
 			
 			Route::get('/rt/detail/anggota/suratpernyatan/{idx}','OrgDiagramController@storeSuratPernyatanKorte');
+
+            Route::get('/rt/detail/anggotakeluargaseryumah/download/pdf/{idx}','OrgDiagramController@downloadMembersKeluargaSerumahRtPDF')->name('admin-struktur-organisasi-rt-detail-anggotakeluargaseryumah-download');
 			
 			
 			Route::get('/rt/detail/anggota/formkoordinator/{idx}','OrgDiagramController@formKoordinatorTpsKorte');
 			Route::post('/rt/detail/anggota/formkoordinator/store/{idx}','OrgDiagramController@storeFormKoordinatorTps')->name('admin-koordinatortpskorte-store');
+			Route::post('/rt/detail/anggota/formkoordinator/delete','OrgDiagramController@deleteDataFormKoordinatorTps')->name('admin-koordinatortpskorte-delete');
 			
 			// Route::post('/rt/detail/anggota/formkoordinator/download/{idx}','OrgDiagramController@downloadAnggotaKorTpsPdf')->name('admin-koordinatortpskorte-store');
 			
@@ -493,8 +503,33 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'], function(){
 			
 			Route::get('/test/pdf','OrgDiagramController@testPdf');
 
-        });
-		
+			Route::post('/anggota/sticker/save/{korte_idx}','OrgDiagramController@uploadSticker')->name('admin-sticker-save');
+			Route::get('/list/sticker/{idx}','OrgDiagramController@listStikerByKorte');
+			Route::get('/list/sticker/delete/{idx}','OrgDiagramController@deleteStikerByAnggota')->name('admin-sticker-delete');
+			
+            #Daftar tim
+            Route::get('/daftartim','OrgDiagramController@daftarTim')->name('admin-daftartim');
+            Route::get('/daftartim/dapil/{dapilId}','OrgDiagramController@daftatTimDapil')->name('admin-daftartim-data-dapil');
+            Route::get('/daftartim/district/{districtId}','OrgDiagramController@daftarTimDistrict')->name('admin-daftartim-data-district');
+            Route::get('/daftartim/village/{villageid}','OrgDiagramController@daftarTimVillage')->name('admin-daftartim-data-village');
+			
+			#anggaran tim
+			Route::get('/daftartim/anggaran','OrgDiagramController@anggaranTim')->name('admin-daftartim-anggaran');
+			Route::get('/daftartim/anggaran/dap il/{dapilId}','OrgDiagramController@anggaranTimDapil')->name('admin-daftartim-anggaran-dapil');
+			
+			
+            Route::get('/rt/anggota/belumtercover','OrgDiagramController@anggotaBelumtercoverPerDesa')->name('admin-daftartim-data-anggotabelumtercover');
+
+            #Daftar Saksi
+            Route::get('/daftartim/saksi','OrgDiagramController@daftarSaksi')->name('admin-daftartim-saksi');
+
+            Route::get('/rt/anggota/formmanual/{idx}','OrgDiagramController@daftarFormManual')->name('admin-struktur-form-manual');
+            
+			
+			Route::get('/rt/anggota/rekap/{idx}','OrgDiagramController@rekapAnggota')->name('admin-struktur-form-manual');
+
+        }); 
+		 
 		Route::group(['prefix' => 'report'], function(){
 			Route::get('/summary','OrgDiagramController@laporanSummary');
 		});
@@ -534,6 +569,7 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'], function(){
             Route::post('/store','TpsController@store')->name('admin-tps-store');
             Route::get('/witnesses/{tpsId}','TpsController@witnesses')->name('admin-tps-witnesses');
             Route::post('/witnesses/store/{tpsId}','TpsController@storeWitness')->name('admin-tps-witnesses-store');
+            Route::post('/witnesses/download','TpsController@downloadSaksiPerDesa')->name('admin-tps-witnesses-download');
         });
 
         #historymonitoring
@@ -612,12 +648,29 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'], function(){
            
             Route::post('/surat/pemenangan', 'SettingController@suratPermohonan')->name('admin-suratpemenangan-store');
         });
-           
-    });
+
+        Route::post('/reward/referal/download/excel', 'RewardController@getPoinByMonthDefaultExcel')->name('admin-rewardreferaldownload-excel');
+        Route::post('/reward/admin/download/excel', 'RewardController@getPoinAdminByMonthDefaultExcel')->name('admin-rewardadmindownload-excel');
+        
+        #DASHBOARD PEROLEHAN SUARA
+        Route::group(['prefix' => 'sip'], function(){
+            Route::get('dashboard','SipController@dashboard')->name('admin-sip-dashboard-regency');
+            Route::get('dashboard/dapil/{dapilid}','SipController@dashboardDapil')->name('admin-sip-dashboard-dapil');
+            Route::get('dashboard/district/{districId}','SipController@dashboardKecamatan')->name('admin-sip-dashboard-district');
+            Route::get('dashboard/district/village/{villageId}','SipController@dashboardDesa')->name('admin-sip-dashboard-village');
+            Route::post('dashboard/district/village/pdf/download/{villageId}','SipController@dashboardDesaPdfDownload')->name('admin-sip-dashboard-village-pdf-download');
+            // Route::get('dashboard/district/village/pdfchart/download/{villageId}','SipController@dashboardDesaPdfChartDownload')->name('admin-sip-dashboard-village-pdfchart-download');
+			Route::post('chart-export','SipController@dashboardDesaPdfChartDownload')->name('export.pdf');
+			Route::post('rangking','SipController@rangkingPerolehanSuara')->name('admin-sip-rangking');
+			Route::post('rangking/desa/{id}','SipController@rangkingPerolehanSuaraDesa')->name('admin-sip-rangking-desa');
+			
+        });
+		
+    }); 
 	
-	 
-    
 });
+
+
 
 Route::group(['prefix' => 'laravel-filemanager', 'middleware' => 'admin'], function () {
     \UniSharp\LaravelFilemanager\Lfm::routes();

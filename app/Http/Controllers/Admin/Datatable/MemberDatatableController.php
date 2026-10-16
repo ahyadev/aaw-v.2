@@ -48,8 +48,8 @@ class MemberDatatableController extends Controller
                         ->join('villages','villages.id','a.village_id')
                         ->join('districts','districts.id','villages.district_id')
                         ->join('regencies','regencies.id','districts.regency_id')
-                        ->join('users as b','b.id','a.user_id')
-                        ->join('users as c','c.id','a.cby')
+                        ->leftJoin('users as b','b.id','a.user_id')
+                        ->leftJoin('users as c','c.id','a.cby')
                         ->leftJoin('dapil_areas','districts.id','dapil_areas.district_id')
                         ->whereNotNull('a.village_id');
 
@@ -491,13 +491,11 @@ class MemberDatatableController extends Controller
                 $orderBy = 'c.name';
                 break;
             case '8':
-                $orderBy = 'f.reason';
+                $orderBy = 'f.name';
+                break;
                 break;
             case '9':
-                $orderBy = 'f.reason';
-                break;
-            case '10':
-                $orderBy = 'f.reason_desc';
+                $orderBy = 'a.reason';
                 break;
         }
 
@@ -523,8 +521,8 @@ class MemberDatatableController extends Controller
                 ->orWhereRaw('LOWER(c.name) like ? ',['%'.strtolower($request->input('search.value')).'%'])
                 ->orWhereRaw('LOWER(a.nik) like ? ',['%'.strtolower($request->input('search.value')).'%'])
                 ->orWhereRaw('LOWER(a.created_at) like ? ',['%'.strtolower($request->input('search.value')).'%'])
-                ->orWhereRaw('LOWER(f.reason) like ? ',['%'.strtolower($request->input('search.value')).'%'])
-                ->orWhereRaw('LOWER(a.reason_desc) like ? ',['%'.strtolower($request->input('search.value')).'%'])
+                ->orWhereRaw('LOWER(f.name) like ? ',['%'.strtolower($request->input('search.value')).'%'])
+                ->orWhereRaw('LOWER(a.reason) like ? ',['%'.strtolower($request->input('search.value')).'%'])
                 ;
             });
         }

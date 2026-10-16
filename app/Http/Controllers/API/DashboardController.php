@@ -2,25 +2,27 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Dpt;
 use App\Job;
+use App\Tps;
 use App\User;
 use App\Referal;
 use Carbon\Carbon;
+use App\OrgDiagram;
 use App\TargetNumber;
 use App\Models\Regency;
 use App\Models\Village;
 use App\Models\District;
 use App\Models\Province;
+use App\RightChooseRegency;
+use App\RightChosseVillage;
+use App\RightChooseDistrict;
+use App\RightChooseProvince;
+use Illuminate\Http\Request;
 use App\Providers\GlobalProvider;
 use App\Providers\GrafikProvider;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\RightChooseDistrict;
-use App\RightChooseProvince;
-use App\RightChooseRegency;
-use App\RightChosseVillage;
-use App\Tps;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -312,10 +314,10 @@ class DashboardController extends Controller
         //     return $q->total;
         // });
         $userModel        = new User();
-        $targetMember     = $gF->calculateTargetNational();
-        $total_member     = $gF->decimalFormat($userModel->where('village_id', '!=', NULL)->count());
-        $target_member    = (string) $targetMember;
-        $persentage_target_member = $gF->persen(($total_member / $target_member) * 100); // persentai terdata
+        // $targetMember     = $gF->calculateTargetNational();
+        $total_member     = $userModel->where('village_id', '!=', NULL)->count();
+        // $target_member    = (string) $targetMember;
+        // $persentage_target_member = $gF->persen(($total_member / $target_member) * 100); // persentai terdata
 
         $villageModel   = new Village();
         $total_village  = $villageModel->getVillages()->total_village; // fungsi total desa di provinsi banten
@@ -324,35 +326,54 @@ class DashboardController extends Controller
         $presentage_village_filled = $gF->persen(($total_village_filled / $total_village) * 100); // persentasi jumlah desa terisi
 
         #total dpt nasioanal, sum count_vooter level provinsi 
-		$RightChooseProvinceModel = new RightChooseProvince(); 
-        $rightChooseProvince      = $RightChooseProvinceModel->getTotalDptNasional()->total_dpt;
+		// $RightChooseProvinceModel = new RightChooseProvince(); 
+        $dptModel                 = new Dpt();
+        $rightChooseProvince      = $dptModel->getDptLevelNational()->total_dpt;
+
+        $tpsNational      = Tps::select('id')->count();
+        $orgDiagramModel = new OrgDiagram();
+        $daftarTeam       = $orgDiagramModel->getDataDaftarTimByNationalForDashboard();
+        $resultsDaftarTeam = [];
+        foreach ($daftarTeam as $val) {
+            $target = $orgDiagramModel->getDataDaftarTimByDapilForRegency($val->id);
+
+            $resultsDaftarTeam[] = [
+                'target' => $target,
+            ];
+        }
+        // jumlakan hasil all target kecamatan by dapil
+        $target_member = collect($resultsDaftarTeam)->sum(function($q){
+            return $q['target'];
+        });
+        $persentage_target_member = $gF->persen(($total_member / $target_member) * 100); // persentai terdata
 
         $data = [
             'total_village' => $gF->decimalFormat($total_village),
             'total_village_filled' => $gF->decimalFormat($total_village_filled),
             'presentage_village_filled' => $presentage_village_filled,
-            'total_member' => $total_member,
+            'total_member' => $gF->decimalFormat($total_member),
             'target_member' => $gF->decimalFormat($target_member),
             'persentage_target_member' => $persentage_target_member,
-            'rightChooseProvince' => $gF->decimalFormat($rightChooseProvince) ?? 0
+            'rightChooseProvince' => $gF->decimalFormat($rightChooseProvince) ?? 0,
+            'tpsNational' => $gF->decimalFormat($tpsNational)
         ];
         return response()->json($data);
-
     }
 
     public function getTotalMemberRegency($regency_id)
     {
+       
         $gF   = app('GlobalProvider'); // global function
 
         $userModel        = new User();
         $member           = $userModel->getMemberRegency($regency_id);   
         $total_member     = count($member); // total anggota terdaftar
 
-        $regencyModel     = Regency::select('target')->where('id', $regency_id)->first();
-        $targetMember    = $regencyModel->target; // target anggota tercapai, per kecamatan 1000 target
+        // $regencyModel     = Regency::select('target')->where('id', $regency_id)->first();
+        // $targetMember    = $regencyModel->target; // target anggota tercapai, per kecamatan 1000 target
 
-        $target_member    = (string) $targetMember;
-        $persentage_target_member = ($total_member / $target_member) * 100;
+        // $target_member    = (string) $targetMember;
+        // $persentage_target_member = ($total_member / $target_member) * 100;
 
         $villageModel   = new Village();
         $villages       = $villageModel->getVillagesRegency($regency_id); // fungsi total desa di kab
@@ -361,17 +382,40 @@ class DashboardController extends Controller
         $total_village_filled      = count($village_filled); // total desa yang terisi
         $presentage_village_filled = ($total_village_filled / $total_village) * 100; // persentasi jumlah desa terisi
         
-		$RightChooseDistrictModel  = new RightChooseDistrict();
-		$rightChooseRegency        = $RightChooseDistrictModel->getTotalDptRegency($regency_id)->total_dpt;
+		// $RightChooseDistrictModel  = new RightChooseDistrict();
+		// $rightChooseRegency        = $RightChooseDistrictModel->getTotalDptRegency($regency_id)->total_dpt;
+
+        $dptModel = new Dpt();
+        $rightChooseRegency = $dptModel->getDptLevelRegency()->total_dpt;
+
+        $tpsRegency       = Tps::select('id')->where('regency_id', $regency_id)->count();
+
+        $orgDiagramModel = new OrgDiagram();
+        $daftarTeam       = $orgDiagramModel->getDataDaftarTimByRegencyForDashboard($regency_id);
+        $resultsDaftarTeam = [];
+        foreach ($daftarTeam as $val) {
+            $target = $orgDiagramModel->getDataDaftarTimByDapilForRegency($val->id);
+
+            $resultsDaftarTeam[] = [
+                'target' => $target,
+            ];
+        }
+        // jumlakan hasil all target kecamatan by dapil
+        $target_member = collect($resultsDaftarTeam)->sum(function($q){
+            return $q['target'];
+        });
+        $persentage_target_member = ($total_member / $target_member) * 100;
 
         $data = [
             'total_village' => $gF->decimalFormat($total_village),
             'total_village_filled' => $gF->decimalFormat($total_village_filled),
-            'presentage_village_filled' => $gF->persen($presentage_village_filled),
+            'presentage_village_filled' => $gF->persenDpt($presentage_village_filled),
             'total_member' => $gF->decimalFormat($total_member),
+            // 'target_member' => $gF->decimalFormat($target_member),
+            'persentage_target_member' => $gF->persenDpt($persentage_target_member),
+            'rightChooseRegency' => $gF->decimalFormat($rightChooseRegency) ?? 0,
+            'tpsRegency' => $gF->decimalFormat($tpsRegency),
             'target_member' => $gF->decimalFormat($target_member),
-            'persentage_target_member' => $gF->persen($persentage_target_member),
-            'rightChooseRegency' => $gF->decimalFormat($rightChooseRegency) ?? 0
         ];
         return response()->json($data);
 
@@ -379,36 +423,46 @@ class DashboardController extends Controller
 
     public function getTotalMemberDistrict($district_id)
     {
-        $gF   = app('GlobalProvider'); // global function
+        $gF   = new GlobalProvider(); // global function
         
         $userModel        = new User();
         $member     = $userModel->getMemberDistrict($district_id);
         $total_member = count($member);
         
         // perentasi anggot  di kecamatan
-        $districtModel    = District::select('target')->where('id', $district_id)->first();
-        $target_member    = $districtModel->target; // target anggota tercapai, per kecamatan 1000 target
-        $persentage_target_member = $gF->persen(($total_member / $target_member) * 100); // persentai terdata
+        $districtModel    = new District();
+        // $target_member    = $districtModel->target; // target anggota tercapai, per kecamatan 1000 target
 
         $villageModel   = new Village();
         $villages       = $villageModel->getVillagesDistrct($district_id); // fungsi total desa di kab
         $total_village  = count($villages);
 
+        $RightChosseVillageModel   = new RightChosseVillage();
+		$rightChooseDistrict       = $RightChosseVillageModel->getTotalDptDistrict($district_id)->total_dpt;
+
+
+        $target_from_dpt  = $districtModel->getTargetPersentageDistrict($district_id)->target_persentage;
+        $target_member  = ($rightChooseDistrict * $target_from_dpt)/100;
+        
+        $persentage_target_member = $gF->persenDpt(($total_member / $target_member) * 100); // persentasi terdata
+
         $village_filled = $villageModel->getVillageFilledDistrict($district_id); //fungsi total desa yang terisi 
         $total_village_filled      = count($village_filled); // total desa yang terisi
-        $presentage_village_filled = $gF->persen(($total_village_filled / $total_village) * 100); // persentasi jumlah desa terisi
-        
-		$RightChosseVillageModel   = new RightChosseVillage();
-		$rightChooseDistrict       = $RightChosseVillageModel->getTotalDptDistrict($district_id)->total_dpt;
+        $presentage_village_filled = $gF->persenDpt(($total_village_filled / $total_village) * 100); // persentasi jumlah desa terisi
+
+        $tpsDistrict       = Tps::select('id')->where('district_id', $district_id)->count();
+		
 
         $data = [
             'total_village' => $gF->decimalFormat($total_village),
             'total_village_filled' => $gF->decimalFormat($total_village_filled),
-            'presentage_village_filled' => $presentage_village_filled,
+            'presentage_village_filled' =>  $presentage_village_filled,
             'total_member' => $gF->decimalFormat($total_member),
+            'target_from_dpt' => $gF->persenDpt($target_from_dpt),
             'target_member' => $gF->decimalFormat($target_member),
             'persentage_target_member' => $persentage_target_member,
-            'rightChooseDistrict' => $gF->decimalFormat($rightChooseDistrict) ?? 0
+            'rightChooseDistrict' => $gF->decimalFormat($rightChooseDistrict) ?? 0,
+            'tpsDistrict' => $gF->decimalFormat($tpsDistrict)
         ];
         return response()->json($data);
 
@@ -455,30 +509,35 @@ class DashboardController extends Controller
 
     public function getTotalMemberVillage($district_id, $village_id)
     {
-        $gF   = app('GlobalProvider'); // global function
+        $gF   = new GlobalProvider(); // global function
         $villageModel   = new Village();
 
         $member     = $villageModel->getMemberVillage($village_id);
         $total_member = count($member);
 
+        $RightChosseVillageModel = new RightChosseVillage();
+        $rightChooseVillage = $RightChosseVillageModel->getTotalDptVillage($village_id)->total_dpt;
+
+        $target_from_dpt  = $villageModel->getTargetPersentageVillage($village_id)->target_persentage;
+        $target_member  = ($rightChooseVillage* $target_from_dpt)/100;
+
          // total desa yg berada di kec, yg sama
-        $targetMmemberModel = $villageModel->select('target')->where('id', $village_id)->first();
-        $total_target_per_district = $targetMmemberModel->target;
-        $target_member  = $gF->decimalFormat($total_target_per_district);
-        $persentage_target_member = ($total_member/$total_target_per_district)*100;
+        // $targetMmemberModel = $villageModel->select('target')->where('id', $village_id)->first();
+        // $total_target_per_district = $targetMmemberModel->target;
+        // $target_member  = $gF->decimalFormat($total_target_per_district);
+        $persentage_target_member = ($total_member/$target_member)*100;
         
         // Daftar pencapaian lokasi / daerah
         $achievments   = $villageModel->achievementVillageFirst($village_id);
-		
-		$RightChosseVillageModel = new RightChosseVillage();
-        $rightChooseVillage = $RightChosseVillageModel->getTotalDptVillage($village_id)->total_dpt;
+       
         $tpsVillag          = Tps::select('id')->where('village_id', $village_id)->count();
 
         $data = [
             'achievments' => $gF->decimalFormat($achievments->todays_achievement ?? ''),
             'total_member' => $gF->decimalFormat($total_member),
-            'target_member' => $target_member,
-            'persentage_target_member' => $gF->persen($persentage_target_member),
+            'target_from_dpt' => $gF->persenDpt($target_from_dpt),
+            'target_member' => $gF->decimalFormat($target_member),
+            'persentage_target_member' => $gF->persenDpt($persentage_target_member),
             'rightChooseVillage' => $gF->decimalFormat($rightChooseVillage) ?? 0,
             'tpsVillag' => $gF->decimalFormat($tpsVillag)
         ];
@@ -1670,9 +1729,9 @@ class DashboardController extends Controller
         $member           = $userModel->getMemberProvince($province_id);
         $total_member     = count($member); // total anggota terdaftar
 
-        $provinceModel    = Province::select('target')->where('id', $province_id)->first();
-        $target_member    = $provinceModel->target;
-        $persentage_target_member = ($total_member / $target_member) * 100; // persentai terdata
+        // $provinceModel    = Province::select('target')->where('id', $province_id)->first();
+        // $target_member    = $provinceModel->target;
+        // $persentage_target_member = ($total_member / $target_member) * 100; // persentai terdata
         
         $villageModel   = new Village();
         $total_village  = $villageModel->getVillagesProvince($province_id)->total_village; // fungsi total desa di provinsi banten
@@ -1680,17 +1739,38 @@ class DashboardController extends Controller
         $total_village_filled      = count($village_filled);
         $presentage_village_filled = ($total_village_filled / $total_village) * 100; // persentasi jumlah desa terisi
 		
-		$RightChooseRegencyModel   = new RightChooseRegency();
-        $rightChooseProvince       = $RightChooseRegencyModel->getTotalDptProvince($province_id)->total_dpt;
+		// $RightChooseRegencyModel   = new RightChooseRegency();
+        // $rightChooseProvince       = $RightChooseRegencyModel->getTotalDptProvince($province_id)->total_dpt;
+        $dptModel = new Dpt();
+        $rightChooseProvince = $dptModel->getDptLevelProvince()->total_dpt;
+
+        $tpsProvince      = Tps::select('id')->where('province_id', $province_id)->count();
+
+        $orgDiagramModel = new OrgDiagram();
+        $daftarTeam       = $orgDiagramModel->getDataDaftarTimByProvinceForDashboard($province_id);
+        $resultsDaftarTeam = [];
+        foreach ($daftarTeam as $val) {
+            $target = $orgDiagramModel->getDataDaftarTimByDapilForRegency($val->id);
+
+            $resultsDaftarTeam[] = [
+                'target' => $target,
+            ];
+        }
+        // jumlakan hasil all target kecamatan by dapil
+        $target_member = collect($resultsDaftarTeam)->sum(function($q){
+            return $q['target'];
+        });
+        $persentage_target_member = ($total_member / $target_member) * 100; // persentai terdata
 
         $data = [
             'total_village' => $gF->decimalFormat($total_village),
             'total_village_filled' => $gF->decimalFormat($total_village_filled),
-            'presentage_village_filled' => $gF->persen($presentage_village_filled),
+            'presentage_village_filled' => $gF->persenDpt($presentage_village_filled),
             'total_member' => $gF->decimalFormat($total_member),
             'target_member' => $gF->decimalFormat($target_member),
-            'persentage_target_member' => $gF->persen($persentage_target_member),
-            'rightChooseProvince' => $gF->decimalFormat($rightChooseProvince) ?? 0
+            'persentage_target_member' => $gF->persenDpt($persentage_target_member),
+            'rightChooseProvince' => $gF->decimalFormat($rightChooseProvince) ?? 0,
+            'tpsProvince' => $gF->decimalFormat($tpsProvince),
         ];
         return response()->json($data);
     }

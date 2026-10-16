@@ -31,7 +31,7 @@ let table = $("#data").DataTable({
             targets: 1,
             sortable: true,
             render: function (data, type, row, meta) {
-                return `<p> <img  class="rounded" width="40" src="/storage/${row.photo}"> ${row.name}</p>`;
+                return `<a href="/admin/member/profile/${row.user_id}"><img  class="rounded" width="40" src="/storage/${row.photo}"> ${row.name}</a>`;
             },
         },
         {
@@ -43,22 +43,47 @@ let table = $("#data").DataTable({
         {
             targets: 3,
             render: function (data, type, row, meta) {
-                return `<p>${row.phone_number ?? ''}</p>`;
+                return row.tps_number;
             },
         },
         {
             targets: 4,
             render: function (data, type, row, meta) {
+                return `<p>${row.phone_number ?? ''}</p>`;
+            },
+        },
+        {
+            targets: 5,
+            render: function (data, type, row, meta) {
                 // return `<a href='/admin/struktur/rt/add/anggota/${row.idx}' class='btn btn-sm btn-sc-primary text-white'>Anggota</a>`;
                 return `
                         <a href="/admin/struktur/rt/edittps/anggota/${row.id}" class="btn btn-sm btn-warning">Edit TPS</a>
                         <a href="/admin/struktur/rt/edit/anggota/${row.id}" class="btn btn-sm btn-info text-white">Edit</a>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="onDelete(this)" data-name="${row.name}" id="${row.id}"><i class="fa fa-trash"></i></button>
-                        `
+                        <button class="btn btn-sm btn-sc-primary text-white" data-name="${row.name}" data-whatever="${row.id}" data-toggle="modal" data-target="#exampleModal">Stiker</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="onDelete(this)" data-name="${row.name}" id="${row.id}"><i class="fa fa-trash"></i></button>`
+
             },
         },
     ],
 });
+
+$('#exampleModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget)
+    var recipient = button.data('whatever')
+    var name = button.data('name')
+    var modal = $(this)
+    modal.find('.modal-title').text('Upload Stiker ' + name)
+    modal.find('#recipient-name').val(recipient)
+})
+
+$('#exampleModal2').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget)
+    var recipient = button.data('whatever')
+    var name = button.data('name')
+    var modal = $(this)
+    modal.find('.modal-title').text('Yakin Hapus ' + name + '?')
+    modal.find('#recipient-name2').val(recipient)
+})
 
 async function onDelete(data) {
     const id = data.id;
@@ -110,5 +135,107 @@ async function onDelete(data) {
         }
     })
 
+
+}
+
+function onDeleteMemberFamilyGroup(data) {
+    const id = data.id;
+    const name = data.getAttribute("data-name");
+
+    const CSRF_TOKEN = $('meta[name="csrf-token"]').attr("content");
+    Swal.fire({
+        title: `Yakin hapus ${name}`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "/api/org/rt/anggotakeluargaserumah/delete",
+                method: "POST",
+                cache: false,
+                data: {
+                    id: id,
+                    _token: CSRF_TOKEN,
+                },
+                success: function (data) {
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        title: `${data.data.message}`,
+                        showConfirmButton: false,
+                        width: 500,
+                        timer: 900,
+                    });
+                    const table = $("#data").DataTable();
+                    window.location.reload();
+                },
+                error: function (error) {
+                    Swal.fire({
+                        position: "center",
+                        icon: "error",
+                        title: `${error.responseJSON.data.message}`,
+                        showConfirmButton: false,
+                        width: 500,
+                        timer: 1000,
+                    });
+                },
+            });
+        }
+    });
+
+}
+
+function onDeleteHeadFamilyGroup(data) {
+    const id = data.id;
+    const name = data.getAttribute("data-name");
+
+    const CSRF_TOKEN = $('meta[name="csrf-token"]').attr("content");
+    Swal.fire({
+        title: `Yakin hapus ${name}`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "/api/org/rt/headkeluargaserumah/delete",
+                method: "POST",
+                cache: false,
+                data: {
+                    id: id,
+                    _token: CSRF_TOKEN,
+                },
+                success: function (data) {
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        title: `${data.data.message}`,
+                        showConfirmButton: false,
+                        width: 500,
+                        timer: 900,
+                    });
+                    const table = $("#data").DataTable();
+                    window.location.reload();
+                },
+                error: function (error) {
+                    Swal.fire({
+                        position: "center",
+                        icon: "error",
+                        title: `${error.responseJSON.data.message}`,
+                        showConfirmButton: false,
+                        width: 500,
+                        timer: 1000,
+                    });
+                },
+            });
+        }
+    });
 
 }

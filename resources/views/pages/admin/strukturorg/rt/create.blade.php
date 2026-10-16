@@ -76,7 +76,7 @@
                             </div>
                             <div class="form-group">
                                 <label>No.Hp / WA</label>
-                                <input type="tex" class="form-control" name="telp" required>
+                                <input type="tex" class="form-control" name="telp">
                             </div>
                             <div class="form-group">
                                 <button class="btn btn-sm btn-sc-primary text-white" type="submit">Simpan</button>

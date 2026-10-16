@@ -7,10 +7,12 @@
             class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/dashboard*') ? 'active custom-active-color' : '' }}">
             Dashboard
         </a>
-        {{-- <a href="{{ route('admin-intelegency-index') }}"
-            class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/intelegency*') ? 'active custom-active-color' : '' }}">
-            Intelegensi Politik
-        </a> --}}
+
+		<a target="_blank" href="{{ route('admin-sip-dashboard-regency') }}"
+            class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/sip*') ? 'active custom-active-color' : '' }}">
+            Grafik Perolehan Suara
+        </a>
+
         <a class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/struktur*') ? 'active custom-active-color ' : '' }}"
             href="#org" data-toggle="collapse" data-target="#org">
             <span class="d-none d-sm-inline"></span>Struktur Organisasi</a>
@@ -35,13 +37,22 @@
                     </a>
                     <a href="{{ route('admin-struktur-organisasi-rt') }}"
                         class="list-group-item custom-sidebar  list-group-item-action custom-active-color {{ request()->is('admin/struktur/create') ? 'active custom-active-color ' : '' }}">
-                        Kor. RT
+                        Kor. TPS
+                    </a>
+                    <a href="{{ route('admin-daftartim') }}"
+                        class="list-group-item custom-sidebar  list-group-item-action custom-active-color {{ request()->is('admin/struktur/create') ? 'active custom-active-color ' : '' }}">
+                        Daftar Tim
+                    </a>
+                    <a href="{{ route('admin-daftartim-saksi') }}"
+                    class="list-group-item custom-sidebar  list-group-item-action custom-active-color {{ request()->is('admin/daftartim/saksi') ? 'active custom-active-color ' : '' }}">
+                        Daftar Saksi
                     </a>
 
                     <a href="{{ route('admin-struktur-organisasi-test') }}" target="_blank"
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/struktur/dashboard') ? 'active custom-active-color' : '' }}">
-                        Bagan Struktur
+                        Bagan Struktur 
                     </a>
+					
                 </li>
             </ul>
         </div>
@@ -96,12 +107,7 @@
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/admincontrol/district/createadmin') ? 'active custom-active-color' : '' }}">
                         Tambah Admin
                     </a>
-                    {{-- <a
-                      href="{{ route('admin-showadminsubmission') }}"
-                      class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ (request()->is('admin/admincontrol/showadminsubmission')) ? 'active custom-active-color' : '' }}"
-                    >
-                      Pengajuan Admin
-                    </a> --}}
+
                     <a href="{{ route('admin-rewardadmin') }}"
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/rewardadmin') ? 'active custom-active-color' : '' }}">
                         Reward
@@ -140,7 +146,7 @@
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/koordinator/pusat/create') ? 'active custom-active-color' : '' }}">
                         Koordinator
                     </a> --}}
-                </li>
+                </li> 
             </ul>
         </div>
         <a class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/event*') ? 'active custom-active-color' : '' }}"
@@ -155,6 +161,9 @@
                     <a href="{{ route('admin-event-create') }}"
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/event/*') ? 'active custom-active-color' : '' }}"><span>Buat
                             Event Baru</span>
+                    </a>
+                    <a href="{{ route('admin-event-anggota-sapa') }}"
+                        class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/event/*') ? 'active custom-active-color' : '' }}"><span>Sapa Anggota</span>
                     </a>
                 </li>
             </ul>
@@ -199,11 +208,10 @@
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/info/intelegency') ? 'active custom-active-color' : '' }}"><span>Form
                             Intelegensi Politik</span>
                     </a>
-                    {{-- <a
-                    href="{{ route('admin-listintelegency') }}"
-                    class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ (request()->is('admin/info/listintelegency')) ? 'active custom-active-color' : '' }}"
-                    ><span>Daftar Intelegensi Politik</span>
-                  </a> --}}
+                    <a href="{{ route('admin-listintelegency') }}"
+                        class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ (request()->is('admin/info/listintelegency')) ? 'active custom-active-color' : '' }}"><span>Daftar
+                            Intelegensi Politik</span>
+                    </a>
                     <a href="{{ route('admin-intelegency-index') }}"
                         class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/intelegency*') ? 'active custom-active-color' : '' }}">
                         Intelegensi Politik
@@ -291,6 +299,11 @@
             </ul>
         </div>
 
+        <a href="{{ route('admin-intelegency-index') }}"
+            class="list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/intelegency*') ? 'active custom-active-color' : '' }}">
+            Intelegensi Politik
+        </a>
+
         <a class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/questionnaire/*') ? 'active custom-active-color' : '' }}"
             href="#questionnaire" data-toggle="collapse" data-target="#questionnaire">
             <span class="d-none d-sm-inline"></span>Kuisioner</a>
@@ -300,22 +313,22 @@
                     <a href="{{ route('admin-questionnaire') }}"
                         class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('questionnaire') ? 'active custom-active-color' : '' }}"><span>
                             Daftar Kuisioner</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('admin-questionnaire-create') }}"
-                            class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('familygroup') ? 'active custom-active-color' : '' }}"><span>
-                                Buat Kuisioner</span></a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin-answercategory') }}"
-                                    class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('answer_choice_categories') ? 'active custom-active-color' : '' }}"><span>
-                                        Daftar Kategori Jawaban</span></a>
-                            </li>
-                    <li class="nav-item">
-                        <a href="{{ route('admin-create-answercategory') }}"
-                            class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('familygroup') ? 'active custom-active-color' : '' }}"><span>
-                                Buat Kategori Jawaban</span></a>
-                    </li>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin-questionnaire-create') }}"
+                        class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('familygroup') ? 'active custom-active-color' : '' }}"><span>
+                            Buat Kuisioner</span></a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin-answercategory') }}"
+                        class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('answer_choice_categories') ? 'active custom-active-color' : '' }}"><span>
+                            Daftar Kategori Jawaban</span></a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin-create-answercategory') }}"
+                        class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ request()->is('familygroup') ? 'active custom-active-color' : '' }}"><span>
+                            Buat Kategori Jawaban</span></a>
+                </li>
 
             </ul>
         </div>
@@ -333,8 +346,8 @@
                 </li>
             </ul>
         </div>
-		
-		 <a class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/report/*') ? 'active custom-active-color' : '' }}"
+
+        <a class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ request()->is('admin/report/*') ? 'active custom-active-color' : '' }}"
             href="#report" data-toggle="collapse" data-target="#report">
             <span class="d-none d-sm-inline"></span>Laporan</a>
         <div class="collapse" id="report" aria-expanded="false">
@@ -347,30 +360,8 @@
             </ul>
         </div>
 
-
-        {{-- <a
-              class="nav-link nav-link-cs collapsed text-truncate list-group-item custom-sidebar list-group-item-action custom-active-color {{ (request()->is('admin/voucher*')) ? 'active custom-active-color' : '' }}"
-              href="#report"
-              data-toggle="collapse"
-              data-target="#report"
-              >
-              <span class="d-none d-sm-inline"></span>Voucher</a
-            >
-             <div class="collapse" id="report" aria-expanded="false">
-              <ul class="flex-column pl-2 nav">
-                <li class="nav-item">
-                  <a
-                    href="{{ route('admin-voucher-report') }}"
-                    class="list-group-item  custom-sidebar list-group-item-action custom-active-color {{ (request()->is('setting/targetmember')) ? 'active custom-active-color' : '' }}"
-                    ><span>Pengeluaran Voucher</span></a
-                  >
-                </li>
-              </ul>
-            </div> --}}
-
         <a class="list-group-item d-lg-none custom-sidebar list-group-item-action custom-active-color"
-            href="{{ route('admin-logout') }}"
-            onclick="event.preventDefault();
+            href="{{ route('admin-logout') }}" onclick="event.preventDefault();
                     document.getElementById('logout-form').submit();">
             {{ __('Logout') }}
         </a>

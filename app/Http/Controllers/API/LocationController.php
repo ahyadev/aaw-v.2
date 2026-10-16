@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Dapil;
 use App\Models\Regency;
 use App\Models\Village;
 use App\Models\District;
@@ -170,6 +171,15 @@ class LocationController extends Controller
 
     }
 
+    public function getSearchDapil()
+    {
+        $data = request()->data;
+        $dapilModel = new Dapil;
+        $dapil = $dapilModel->getDapilDetailById($data);
+        return response()->json($dapil);
+
+    }
+
     public function getVillageSelect()
     {
         $villageModel = new Village();
@@ -209,6 +219,16 @@ class LocationController extends Controller
     public function getRTByVIllage(){
 
         $rt = DB::table('users')->select('rt')->groupBy('rt')->orderBy('rt','asc')
+                ->where('village_id',request()->village_id)->get();
+                
+        return response()->json($rt);
+    }
+
+    public function getTpsVIllage(){
+
+        $rt = DB::table('tps')->select('id','tps_number')
+                ->groupBy('id')
+                ->groupBy('tps_number')
                 ->where('village_id',request()->village_id)->get();
                 
         return response()->json($rt);

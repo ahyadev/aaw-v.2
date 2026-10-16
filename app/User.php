@@ -355,7 +355,7 @@ class User extends Authenticatable
                 when age between 35 and 40 then '35 - 40'
                 when age between 40 and 45 then '40 - 45'
                 when age between 45 and 50 then '45 - 50'
-                when age between 50 and 60 then '50 - 55'
+                when age between 50 and 55 then '50 - 55'
                 when age between 55 and 60 then '55 - 60'
                 when age >= 60 then '60 - ...'
                 when age is null then '(NULL)'
@@ -383,7 +383,7 @@ class User extends Authenticatable
                 when age between 35 and 40 then '35 - 40'
                 when age between 40 and 45 then '40 - 45'
                 when age between 45 and 50 then '45 - 50'
-                when age between 50 and 60 then '50 - 55'
+                when age between 50 and 55 then '50 - 55'
                 when age between 55 and 60 then '55 - 60'
                 when age >= 60 then '60 - ...'
                 when age is null then '(NULL)'
@@ -409,7 +409,7 @@ class User extends Authenticatable
                 CASE 
                 when age between 17 and 40 then '17 - 40'
                 when age between 41 and 50 then '41 - 50'
-                when age > 50 then '50 - ...'
+                when age > 51 then '51 - ...'
                 when age is null then '(NULL)'                 
                 end as gen_age,
                 count(*) as total
@@ -430,7 +430,7 @@ class User extends Authenticatable
                 CASE 
                 when age between 17 and 40 then '17 - 40'
                 when age between 41 and 50 then '41 - 50'
-                when age > 50 then '50 - ...'
+                when age > 51 then '51 - ...'
                 when age is null then '(NULL)'                 
                 end as gen_age,
                 count(*) as total
@@ -454,7 +454,7 @@ class User extends Authenticatable
                 CASE 
                 when age between 17 and 40 then '17 - 40'
                 when age between 41 and 50 then '41 - 50'
-                when age > 50 then '50 - ...'
+                when age > 51 then '51 - ...'
                 when age is null then '(NULL)'                 
                 end as gen_age,
                 count(*) as total
@@ -529,7 +529,7 @@ class User extends Authenticatable
                 CASE 
                 when age between 17 and 40 then '17 - 40'
                 when age between 41 and 50 then '41 - 50'
-                when age > 50 then '50 - ...'
+                when age > 51 then '51 - ...'
                 when age is null then '(NULL)'                 
                 end as gen_age,
                 count(*) as total
@@ -580,7 +580,7 @@ class User extends Authenticatable
                 when age between 35 and 40 then '35 - 40'
                 when age between 40 and 45 then '40 - 45'
                 when age between 45 and 50 then '45 - 50'
-                when age between 50 and 60 then '50 - 55'
+                when age between 50 and 55 then '50 - 55'
                 when age between 55 and 60 then '55 - 60'
                 when age >= 60 then '60 - ...'
                 when age is null then '(NULL)'
@@ -675,7 +675,7 @@ class User extends Authenticatable
                     when age between 35 and 40 then '35 - 40'
                     when age between 40 and 45 then '40 - 45'
                     when age between 45 and 50 then '45 - 50'
-                    when age between 50 and 60 then '50 - 55'
+                    when age between 50 and 55 then '50 - 55'
                     when age between 55 and 60 then '55 - 60'
                     when age >= 60 then '60 - ...'
                     when age is null then '(NULL)'
@@ -1006,7 +1006,7 @@ class User extends Authenticatable
                     when age between 35 and 40 then '35 - 40'
                     when age between 40 and 45 then '40 - 45'
                     when age between 45 and 50 then '45 - 50'
-                    when age between 50 and 60 then '50 - 55'
+                    when age between 50 and 55 then '50 - 55'
                     when age between 55 and 60 then '55 - 60'
                     when age >= 60 then '60 - ...'
                     when age is null then '(NULL)'
@@ -1059,7 +1059,7 @@ class User extends Authenticatable
                 CASE 
                 when age between 17 and 40 then '17 - 40'
                 when age between 41 and 50 then '41 - 50'
-                when age > 50 then '50 - ...'
+                when age > 51 then '51 - ...'
                 when age is null then '(NULL)'                 
                 end as gen_age,
                 count(*) as total
@@ -1134,7 +1134,7 @@ class User extends Authenticatable
     public function getListMemberByDistrictId($district_id, $user_id)
     {
         $sql = "SELECT  
-                    a.id, a.name,c.name as village, d.name as district, e.name as regency, f.name as province, a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo,a.created_at,
+                    a.nik, a.id, a.name,c.name as village, d.name as district, e.name as regency, f.name as province, a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo,a.created_at,
                     g.name as inputer, i.name as referal, COUNT(h.id) as total_referal
                     FROM users as a
                 join 
@@ -1154,7 +1154,7 @@ class User extends Authenticatable
                 where 
                     d.id = $district_id and a.user_id = $user_id
                 group by 
-                 	a.id, a.name,c.name, d.name, e.name, f.name , a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo, a.created_at, 
+                 	a.nik,a.id, a.name,c.name, d.name, e.name, f.name , a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo, a.created_at, 
                     g.name, i.name
                 order by c.name,a.name ASC ";
         return DB::select($sql);
@@ -1192,7 +1192,7 @@ class User extends Authenticatable
     public function getListMemberByDistrictAll($user_id)
     {
         $sql = "SELECT  
-                    a.id, a.name,c.name as village, d.name as district, e.name as regency, f.name as province, a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo, a.created_at, 
+                    a.nik, a.id, a.name,c.name as village, d.name as district, e.name as regency, f.name as province, a.address, a.rt, a.rw, a.phone_number, a.whatsapp, a.photo, a.created_at, 
                     g.name as inputer, i.name as referal, COUNT(h.id) as total_referal
                 FROM 
                     users as a
